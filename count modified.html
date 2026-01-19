@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Count</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      user-select: none;
+    }
+    #counter {
+      font-size: 8rem;
+    }
+  </style>
+</head>
+<body>
+
+<div id="counter">1</div>
+
+<script>
+  let count = 1;
+  const max = 10;
+  const counter = document.getElementById("counter");
+
+  function beep() {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    osc.frequency.value = 850;
+    osc.connect(ctx.destination);
+    osc.start();
+    setTimeout(() => {
+      osc.stop();
+      ctx.close();
+    }, 120);
+  }
+
+  function start() {
+    count = 1;
+    counter.textContent = count;
+    beep();
+
+    const interval = setInterval(() => {
+      count++;
+      counter.textContent = count;
+      beep();
+
+      if (count >= max) {
+        clearInterval(interval);
+        counter.textContent = "DONE";
+      }
+    }, 1000);
+  }
+
+  // Force fullscreen
+  function forceFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  }
+
+  // Restart if fullscreen exits
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) {
+      location.reload();
+    }
+  });
+
+  // Restart if user switches apps / overview
+  window.addEventListener("blur", () => {
+    location.reload();
+  });
+
+  // Block most input
+  document.addEventListener("keydown", e => {
+    e.preventDefault();
+    location.reload();
+  });
+
+  document.addEventListener("contextmenu", e => e.preventDefault());
+  document.addEventListener("mousedown", e => e.preventDefault());
+
+  // Try fullscreen immediately
+  forceFullscreen();
+  start();
+</script>
+
+</body>
+</html>
