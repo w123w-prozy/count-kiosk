@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Counting App</title>
+  <title>Count</title>
   <style>
     body {
       margin: 0;
@@ -14,15 +14,79 @@
       height: 100vh;
       font-family: Arial, sans-serif;
       user-select: none;
+      cursor: pointer;
     }
     #counter {
-      font-size: 8rem;
+      font-size: 6rem;
+      text-align: center;
     }
   </style>
 </head>
 <body>
 
-<div id="counter">1</div>
+<div id="counter">CLICK TO START</div>
 
 <script>
-  let coun
+  let count = 0;
+  const max = 10;
+  const counter = document.getElementById("counter");
+  let started = false;
+
+  function beep() {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    osc.frequency.value = 850;
+    osc.connect(ctx.destination);
+    osc.start();
+    setTimeout(() => {
+      osc.stop();
+      ctx.close();
+    }, 120);
+  }
+
+  function startCounting() {
+    if (started) return;
+    started = true;
+
+    document.documentElement.requestFullscreen().catch(() => {});
+    count = 1;
+    counter.textContent = count;
+    beep();
+
+    const interval = setInterval(() => {
+      count++;
+      counter.textContent = count;
+      beep();
+
+      if (count >= max) {
+        clearInterval(interval);
+        counter.textContent = "DONE";
+      }
+    }, 1000);
+  }
+
+  // Restart if user escapes
+  document.addEventListener("fullscreenchange", () => {
+    if (started && !document.fullscreenElement) location.reload();
+  });
+
+  window.addEventListener("blur", () => {
+    if (started) location.reload();
+  });
+
+  // Block inputs after start
+  document.addEventListener("keydown", e => {
+    if (started) {
+      e.preventDefault();
+      location.reload();
+    }
+  });
+
+  document.addEventListener("contextmenu", e => e.preventDefault());
+
+  // User gesture required
+  document.body.addEventListener("click", startCounting);
+</script>
+
+</body>
+</html>
