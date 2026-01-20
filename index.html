@@ -31,6 +31,7 @@
   const max = 10;
   const counter = document.getElementById("counter");
   let started = false;
+  let interval;
 
   function beep() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -44,16 +45,29 @@
     }, 120);
   }
 
+  function forceFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  }
+
+  function reset() {
+    clearInterval(interval);
+    started = false;
+    counter.textContent = "CLICK TO START";
+  }
+
   function startCounting() {
     if (started) return;
     started = true;
 
-    document.documentElement.requestFullscreen().catch(() => {});
+    forceFullscreen();
+
     count = 1;
     counter.textContent = count;
     beep();
 
-    const interval = setInterval(() => {
+    interval = setInterval(() => {
       count++;
       counter.textContent = count;
       beep();
@@ -65,26 +79,33 @@
     }, 1000);
   }
 
-  // Restart if user escapes
+  // If fullscreen exits → snap back + reset
   document.addEventListener("fullscreenchange", () => {
-    if (started && !document.fullscreenElement) location.reload();
+    if (started && !document.fullscreenElement) {
+      reset();
+      setTimeout(forceFullscreen, 50);
+    }
   });
 
-  window.addEventListener("blur", () => {
-    if (started) location.reload();
+  // If tab loses visibility (overview, switching apps)
+  document.addEventListener("visibilitychange", () => {
+    if (started && document.hidden) {
+      reset();
+      setTimeout(forceFullscreen, 50);
+    }
   });
 
-  // Block inputs after start
+  // Block input after start
   document.addEventListener("keydown", e => {
     if (started) {
       e.preventDefault();
-      location.reload();
+      reset();
+      setTimeout(forceFullscreen, 50);
     }
   });
 
   document.addEventListener("contextmenu", e => e.preventDefault());
 
-  // User gesture required
   document.body.addEventListener("click", startCounting);
 </script>
 
